@@ -5,12 +5,12 @@ import pygame
 WIDTH, HEIGHT = 800, 600  
 GRID_SIZE = 50            
 CELL_SIZE = WIDTH // GRID_SIZE  
-FPS = 5                 
+FPS = 24                 
 
 # Cores
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-GRAY = (200, 200, 200)
+GRAY = (50, 50, 50)
 
 def initialize_board(n):
     board = np.zeros([n, n])
@@ -85,7 +85,7 @@ def game_of_life():
                 rect = pygame.Rect(j * CELL_SIZE, i * CELL_SIZE, CELL_SIZE, CELL_SIZE)
                 color = WHITE if board[i, j] == 1 else BLACK
                 pygame.draw.rect(screen, color, rect)
-                #pygame.draw.rect(screen, GRAY, rect, 1)
+                pygame.draw.rect(screen, GRAY, rect, 1)
 
         pygame.display.flip()
         clock.tick(FPS)
