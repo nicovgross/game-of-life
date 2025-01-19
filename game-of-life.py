@@ -2,11 +2,11 @@ import numpy as np
 import sys
 import pygame
 
-WIDTH, HEIGHT = 800, 800  
+WIDTH, HEIGHT = 800, 600  
 GRID_SIZE = 50            
 CELL_SIZE = WIDTH // GRID_SIZE  
-FPS = 10                 
-
+FPS = 10         
+        
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GRAY = (50, 50, 50)
@@ -60,12 +60,15 @@ def handle_events(board, running):
             x, y = pygame.mouse.get_pos()
             cell_x, cell_y = x // CELL_SIZE, y // CELL_SIZE
             board[cell_y, cell_x] = 1 - board[cell_y, cell_x]
-        if event.type == pygame.KEYDOWN:
+        elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 running = not running 
             if event.key == pygame.K_r:
                 board = initialize_board(GRID_SIZE) 
                 running = not running
+            if event.key == pygame.K_f:
+                pygame.display.toggle_fullscreen()
+            
     return board, running
 
 def draw_grid(board, screen):
@@ -79,7 +82,7 @@ def draw_grid(board, screen):
 
 def game_of_life():
     pygame.init()
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
     pygame.display.set_caption("Game of Life")
     clock = pygame.time.Clock()
 
@@ -95,6 +98,5 @@ def game_of_life():
 
         pygame.display.flip()
         clock.tick(FPS)
-
 
 game_of_life()
