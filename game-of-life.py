@@ -3,7 +3,7 @@ import sys
 import pygame
 
 WIDTH, HEIGHT = 800, 600  
-GRID_SIZE = 50            
+GRID_SIZE = 100            
 CELL_SIZE = WIDTH // GRID_SIZE  
 FPS = 10         
         
@@ -51,27 +51,36 @@ def update_board(prev_board):
 
     return new_board
 
-def handle_events(board, running):
+def handle_events(board, running, CELL_SIZE):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+
         if event.type == pygame.MOUSEBUTTONDOWN and not running:
-            x, y = pygame.mouse.get_pos()
-            cell_x, cell_y = x // CELL_SIZE, y // CELL_SIZE
-            board[cell_y, cell_x] = 1 - board[cell_y, cell_x]
-        elif event.type == pygame.KEYDOWN:
+            if event.button == 1: #left click to activate cell
+                x, y = pygame.mouse.get_pos()
+                cell_x, cell_y = x // CELL_SIZE, y // CELL_SIZE
+                board[cell_y, cell_x] = 1 - board[cell_y, cell_x]
+                
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 4 and CELL_SIZE <= 60: #scroll up to zoom in
+                    CELL_SIZE *= 1.25
+            if event.button == 5 and CELL_SIZE >= 4: #scroll down to zoom out
+                    CELL_SIZE //= 1.25
+            
+        if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 running = not running 
             if event.key == pygame.K_r:
                 board = initialize_board(GRID_SIZE) 
-                running = not running
+                running = False
             if event.key == pygame.K_f:
                 pygame.display.toggle_fullscreen()
             
-    return board, running
+    return board, running, int(CELL_SIZE)
 
-def draw_grid(board, screen):
+def draw_grid(board, screen, CELL_SIZE):
     screen.fill(BLACK)
     for i in range(GRID_SIZE):
         for j in range(GRID_SIZE):
@@ -80,7 +89,7 @@ def draw_grid(board, screen):
             pygame.draw.rect(screen, color, rect)
             pygame.draw.rect(screen, GRAY, rect, 1)
 
-def game_of_life():
+def game_of_life(CELL_SIZE=CELL_SIZE):
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
     pygame.display.set_caption("Game of Life")
@@ -89,12 +98,12 @@ def game_of_life():
     board = initialize_board(GRID_SIZE)
     running = False  
     while True:
-        board, running = handle_events(board, running)
+        board, running, CELL_SIZE = handle_events(board, running, CELL_SIZE)
 
         if running:
             board = update_board(board)
 
-        draw_grid(board, screen)
+        draw_grid(board, screen, CELL_SIZE)
 
         pygame.display.flip()
         clock.tick(FPS)
