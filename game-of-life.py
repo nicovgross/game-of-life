@@ -51,68 +51,56 @@ def update_board(prev_board):
 
     return new_board
 
-def handle_events(board, running, CELL_SIZE, offset):
-
+def handle_events(board, running, CELL_SIZE, offset, state):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
 
-        if event.type == pygame.MOUSEBUTTONDOWN and not running:
-            
-            if event.button == 1: #left click to activate cell
-                left_click = pygame.mouse.get_pressed()[0]
-                initial_position = pygame.mouse.get_pos()
-                while left_click:
-                    for event in pygame.event.get():
-                        if event.type == pygame.QUIT:
-                            pygame.quit()
-                            sys.exit()
-                    left_click = pygame.mouse.get_pressed()[0]
-
-                current_mouse_pos = pygame.mouse.get_pos()
-                dx = current_mouse_pos[0] - initial_position[0]
-                dy = current_mouse_pos[1] - initial_position[1]
-                offset[0] = dx
-                offset[1] = dy
-
-                
-                '''if offset == [0, 0]:
-                    offset = [0, 0]
-                    continue
-
-                print(initial_position, current_mouse_pos)
-                print(dx, dy)
-                print(offset)'''
-
-                x, y = pygame.mouse.get_pos()
-                cell_x, cell_y = x // CELL_SIZE, y // CELL_SIZE
-                board[cell_y, cell_x] = 1 - board[cell_y, cell_x]
-                
         if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  #left click to activate cell or drag the grid
+                state["dragging"] = True
+                state["initial_position"] = pygame.mouse.get_pos()
+                state["moved"] = False  #flag to check if there was a significant movement
+
             if event.button == 4 and CELL_SIZE <= 60: #scroll up to zoom in
-                    CELL_SIZE *= 1.25
+                    CELL_SIZE = int(CELL_SIZE * 1.25)
             if event.button == 5 and CELL_SIZE >= 4: #scroll down to zoom out
                     CELL_SIZE //= 1.25
 
-        '''if event.type == pygame.MOUSEMOTION and dragging:
+        #detects if user is dragging the grid
+        if event.type == pygame.MOUSEMOTION and state["dragging"]:
             current_mouse_pos = pygame.mouse.get_pos()
-            dx = current_mouse_pos[0] - last_mouse_pos[0]
-            dy = current_mouse_pos[1] - last_mouse_pos[1]
-            offset[0] += dx
-            offset[1] += dy
-            last_mouse_pos = current_mouse_pos'''
-            
+            dx = current_mouse_pos[0] - state["initial_position"][0]
+            dy = current_mouse_pos[1] - state["initial_position"][1]
+
+            if abs(dx) > 2 or abs(dy) > 2:  #defines if movement was significant enough
+                offset[0] += dx
+                offset[1] += dy
+                state["initial_position"] = current_mouse_pos  #updates initial position
+                state["moved"] = True
+
+        if event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 1:  #left click to activate cell
+                state["dragging"] = False
+
+                #only activates cell if there was no significant movement
+                if not state["moved"]:
+                    x, y = pygame.mouse.get_pos()
+                    cell_x, cell_y = (x - offset[0]) // CELL_SIZE, (y - offset[1]) // CELL_SIZE
+                    if 0 <= cell_x < GRID_SIZE and 0 <= cell_y < GRID_SIZE:
+                        board[cell_y, cell_x] = 1 - board[cell_y, cell_x]
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
-                running = not running 
+                running = not running
             if event.key == pygame.K_r:
-                board = initialize_board(GRID_SIZE) 
+                board = initialize_board(GRID_SIZE)
                 running = False
             if event.key == pygame.K_f:
                 pygame.display.toggle_fullscreen()
-            
-    return board, running, int(CELL_SIZE), offset
+
+    return board, running, CELL_SIZE, offset
 
 def draw_grid(board, screen, CELL_SIZE, offset):
     screen.fill(BLACK)
@@ -131,10 +119,13 @@ def game_of_life(CELL_SIZE=CELL_SIZE):
 
     board = initialize_board(GRID_SIZE)
     running = False  
-    offset = [0, 0]
+    offset = [0, 0] #indicates how far the grid has been dragged, and used to display the grid in the correct position
+
+    #dictionary that handles mouse dragging
+    state = {"dragging": False, "initial_position": None}
+
     while True:
-        board, running, CELL_SIZE, offset = handle_events(board, running, CELL_SIZE, offset)
-        #print(offset)
+        board, running, CELL_SIZE, offset = handle_events(board, running, CELL_SIZE, offset, state)
 
         if running:
             board = update_board(board)
