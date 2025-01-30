@@ -4,8 +4,7 @@ import pygame
 
 WIDTH, HEIGHT = 800, 600  
 GRID_SIZE = 100            
-CELL_SIZE = WIDTH // GRID_SIZE
-FPS = 10         
+CELL_SIZE = WIDTH // GRID_SIZE       
         
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -51,7 +50,7 @@ def update_board(prev_board):
 
     return new_board
 
-def handle_events(board, running, CELL_SIZE, offset, state, grid):
+def handle_events(board, running, CELL_SIZE, offset, state, grid, FPS):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -101,8 +100,13 @@ def handle_events(board, running, CELL_SIZE, offset, state, grid):
                 pygame.display.toggle_fullscreen()
             if event.key == pygame.K_g:
                 grid = not grid
+            if event.key == pygame.K_UP and FPS < 60:  #increase FPS
+                FPS += 1
+            if event.key == pygame.K_DOWN and FPS > 1:  #decrease FPS
+                FPS -= 1
+                
 
-    return board, running, CELL_SIZE, offset, grid
+    return board, running, CELL_SIZE, offset, grid, FPS
 
 def draw_grid(board, screen, CELL_SIZE, offset, grid):
     screen.fill(BLACK)
@@ -120,6 +124,7 @@ def game_of_life(CELL_SIZE=CELL_SIZE):
     pygame.display.set_caption("Game of Life")
     clock = pygame.time.Clock()
 
+    FPS = 10  #frames per second
     board = initialize_board(GRID_SIZE)
     running = False  
     offset = [0, 0] #indicates how far the grid has been dragged, and used to display the grid in the correct position
@@ -129,7 +134,7 @@ def game_of_life(CELL_SIZE=CELL_SIZE):
     state = {"dragging": False, "initial_position": None}
 
     while True:
-        board, running, CELL_SIZE, offset, grid = handle_events(board, running, CELL_SIZE, offset, state, grid)
+        board, running, CELL_SIZE, offset, grid, FPS = handle_events(board, running, CELL_SIZE, offset, state, grid, FPS)
 
         if running:
             board = update_board(board)
