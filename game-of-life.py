@@ -133,13 +133,23 @@ def game_of_life(CELL_SIZE=CELL_SIZE):
     #dictionary that handles mouse dragging
     state = {"dragging": False, "initial_position": None}
 
+    pause_icon = pygame.image.load("img\Pause_icon.png")
+    unpause_icon = pygame.image.load("img\\Unpause_icon.png")
+    pause_icon_scaled = pygame.transform.scale(pause_icon, (50, 50))
+    unpause_icon_scaled = pygame.transform.scale(unpause_icon, (50, 50))
+    pause_icon_scaled.set_alpha(150)
+    unpause_icon_scaled.set_alpha(150)
+
     while True:
         board, running, CELL_SIZE, offset, grid, FPS = handle_events(board, running, CELL_SIZE, offset, state, grid, FPS)
 
+        draw_grid(board, screen, CELL_SIZE, offset, grid)
+
         if running:
             board = update_board(board)
-
-        draw_grid(board, screen, CELL_SIZE, offset, grid)
+            screen.blit(unpause_icon_scaled, (10, 10))
+        else:
+            screen.blit(pause_icon_scaled, (10, 10))
 
         pygame.display.flip()
         clock.tick(FPS)
