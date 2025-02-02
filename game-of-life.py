@@ -123,8 +123,10 @@ def game_of_life(CELL_SIZE=CELL_SIZE):
     screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
     pygame.display.set_caption("Game of Life")
     clock = pygame.time.Clock()
-
+    pygame.font.init() 
+    
     FPS = 10  #frames per second
+    font = pygame.font.SysFont("Arial", 25, bold=True)
     board = initialize_board(GRID_SIZE)
     running = False  
     offset = [0, 0] #indicates how far the grid has been dragged, and used to display the grid in the correct position
@@ -133,22 +135,26 @@ def game_of_life(CELL_SIZE=CELL_SIZE):
     #dictionary that handles mouse dragging
     state = {"dragging": False, "initial_position": None}
 
-    pause_icon = pygame.image.load("img\Pause_icon.png")
-    unpause_icon = pygame.image.load("img\\Unpause_icon.png")
+    pause_icon = pygame.image.load(r"img/Pause_icon.png")
+    unpause_icon = pygame.image.load(r"img/Unpause_icon.png")
     pause_icon_scaled = pygame.transform.scale(pause_icon, (50, 50))
     unpause_icon_scaled = pygame.transform.scale(unpause_icon, (50, 50))
-    pause_icon_scaled.set_alpha(150)
-    unpause_icon_scaled.set_alpha(150)
 
     while True:
+        FPS_text = font.render(f"FPS: {FPS}", True, (84, 84, 84))
+
         board, running, CELL_SIZE, offset, grid, FPS = handle_events(board, running, CELL_SIZE, offset, state, grid, FPS)
 
         draw_grid(board, screen, CELL_SIZE, offset, grid)
 
+        screen.blit(FPS_text, (10, 70))
+
         if running:
             board = update_board(board)
+            unpause_icon_scaled.set_alpha(150)
             screen.blit(unpause_icon_scaled, (10, 10))
         else:
+            pause_icon_scaled.set_alpha(150)
             screen.blit(pause_icon_scaled, (10, 10))
 
         pygame.display.flip()
