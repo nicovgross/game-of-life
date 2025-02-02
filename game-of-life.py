@@ -50,7 +50,7 @@ def update_board(prev_board):
 
     return new_board
 
-def handle_events(board, running, CELL_SIZE, offset, state, grid, FPS):
+def handle_events(board, running, iteration, generations, CELL_SIZE, offset, state, grid, FPS):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -95,6 +95,8 @@ def handle_events(board, running, CELL_SIZE, offset, state, grid, FPS):
                 running = not running
             if event.key == pygame.K_r:
                 board = initialize_board(GRID_SIZE)
+                iteration = 0
+                generations = [board]
                 running = False
             if event.key == pygame.K_f:
                 pygame.display.toggle_fullscreen()
@@ -104,9 +106,17 @@ def handle_events(board, running, CELL_SIZE, offset, state, grid, FPS):
                 FPS += 1
             if event.key == pygame.K_DOWN and FPS > 1:  #decrease FPS
                 FPS -= 1
-                
+            if event.key == pygame.K_LEFT and iteration > 0 and not running:  #go back one generation
+                iteration -= 1
+                board = generations[iteration]
+                print(iteration)
+            if event.key == pygame.K_RIGHT and not running:  #go forward one generation
+                iteration += 1
+                board = generations[iteration] if iteration < len(generations) else update_board(board)
+                generations.append(board)
+                print(iteration)     
 
-    return board, running, CELL_SIZE, offset, grid, FPS
+    return board, running, iteration, generations, CELL_SIZE, offset, grid, FPS
 
 def draw_grid(board, screen, CELL_SIZE, offset, grid):
     screen.fill(BLACK)
@@ -128,6 +138,8 @@ def game_of_life(CELL_SIZE=CELL_SIZE):
     FPS = 10  #frames per second
     font = pygame.font.SysFont("Arial", 25, bold=True)
     board = initialize_board(GRID_SIZE)
+    generations = [board]
+    iteration = 0
     running = False  
     offset = [0, 0] #indicates how far the grid has been dragged, and used to display the grid in the correct position
     grid = True  #flag to display grid
@@ -142,15 +154,19 @@ def game_of_life(CELL_SIZE=CELL_SIZE):
 
     while True:
         FPS_text = font.render(f"FPS: {FPS}", True, (84, 84, 84))
+        iteration_text = font.render(f"Iteration: {iteration}", True, (84, 84, 84))
 
-        board, running, CELL_SIZE, offset, grid, FPS = handle_events(board, running, CELL_SIZE, offset, state, grid, FPS)
+        board, running, iteration, generations, CELL_SIZE, offset, grid, FPS = handle_events(board, running, iteration, generations, CELL_SIZE, offset, state, grid, FPS)
 
         draw_grid(board, screen, CELL_SIZE, offset, grid)
 
         screen.blit(FPS_text, (10, 70))
+        screen.blit(iteration_text, (10, 100))
 
         if running:
             board = update_board(board)
+            iteration += 1
+            generations.append(board)
             unpause_icon_scaled.set_alpha(150)
             screen.blit(unpause_icon_scaled, (10, 10))
         else:
