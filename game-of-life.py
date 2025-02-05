@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import pygame
 
-WIDTH, HEIGHT = 800, 600  
+WIDTH, HEIGHT = 800, 600
 GRID_SIZE = 100            
 CELL_SIZE = WIDTH // GRID_SIZE       
         
@@ -10,10 +10,12 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GRAY = (50, 50, 50)
 
+#initializes the game's board, as a matrix nxn of zeros
 def initialize_board(n):
     board = np.zeros([n, n])
     return board
 
+#checks the number of live neighbors of a given cell
 def check_neighbors(board, cell):
     live_neighbors = 0 
     i = cell[0]
@@ -30,6 +32,7 @@ def check_neighbors(board, cell):
 
     return live_neighbors
 
+#given the current board, updates it according to the rules of the game
 def update_board(prev_board):
     n = prev_board.shape[0]
     new_board = initialize_board(n)
@@ -50,16 +53,27 @@ def update_board(prev_board):
 
     return new_board
 
-def count_population(board):
-    return np.sum(board)
+'''
+Function that handles the game's events, such as mouse clicks, key presses, and updates the game's state accordingly.
 
+Parameters: 
+    board: the game's current board
+    running: flag to indicate whether the game is running or not
+    iteration: current iteration of the game
+    generations: list of all the game's boards until the current iteration
+    CELL_SIZE: size of each cell
+    offset: list that indicates how far the grid has been dragged, and used to display the grid in the correct position
+    state: dictionary that handles mouse dragging
+    grid: flag to display grid
+    FPS: variable that stores the frame rate in which the game is being updated(increasing or decreasing it changes the speed of the game)
+'''
 def handle_events(board, running, iteration, generations, CELL_SIZE, offset, state, grid, FPS):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
 
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN: 
             if event.button == 1:  #left click to activate cell or drag the grid
                 state["dragging"] = True
                 state["initial_position"] = pygame.mouse.get_pos()
@@ -73,6 +87,7 @@ def handle_events(board, running, iteration, generations, CELL_SIZE, offset, sta
         #detects if user is dragging the grid
         if event.type == pygame.MOUSEMOTION and state["dragging"]:
             current_mouse_pos = pygame.mouse.get_pos()
+            #calculates how much the mouse has moved since dragging started
             dx = current_mouse_pos[0] - state["initial_position"][0]
             dy = current_mouse_pos[1] - state["initial_position"][1]
 
@@ -82,28 +97,28 @@ def handle_events(board, running, iteration, generations, CELL_SIZE, offset, sta
                 state["initial_position"] = current_mouse_pos  #updates initial position
                 state["moved"] = True
 
-        if event.type == pygame.MOUSEBUTTONUP:
+        if event.type == pygame.MOUSEBUTTONUP: #if left click is released
             if event.button == 1:  #left click to activate cell
                 state["dragging"] = False
 
                 #only activates cell if there was no significant movement
                 if not state["moved"]:
                     x, y = pygame.mouse.get_pos()
-                    cell_x, cell_y = (x - offset[0]) // CELL_SIZE, (y - offset[1]) // CELL_SIZE
+                    cell_x, cell_y = (x - offset[0]) // CELL_SIZE, (y - offset[1]) // CELL_SIZE #calculate cell that was activates
                     if 0 <= cell_x < GRID_SIZE and 0 <= cell_y < GRID_SIZE:
                         board[cell_y, cell_x] = 1 - board[cell_y, cell_x]
 
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
+            if event.key == pygame.K_SPACE: #pause or unpause the game
                 running = not running
-            if event.key == pygame.K_r:
+            if event.key == pygame.K_r: #reset the game
                 board = initialize_board(GRID_SIZE)
                 iteration = 0
                 generations = [board]
                 running = False
-            if event.key == pygame.K_f:
+            if event.key == pygame.K_f: #toggle fullscreen
                 pygame.display.toggle_fullscreen()
-            if event.key == pygame.K_g:
+            if event.key == pygame.K_g: #toggle grid
                 grid = not grid
             if event.key == pygame.K_UP and FPS < 60:  #increase FPS
                 FPS += 1
@@ -119,6 +134,7 @@ def handle_events(board, running, iteration, generations, CELL_SIZE, offset, sta
 
     return board, running, iteration, generations, CELL_SIZE, offset, grid, FPS
 
+#draws the game's grid
 def draw_grid(board, screen, CELL_SIZE, offset, grid):
     screen.fill(BLACK)
     for i in range(GRID_SIZE):
@@ -139,15 +155,17 @@ def game_of_life(CELL_SIZE=CELL_SIZE):
     FPS = 10  #frames per second
     font = pygame.font.SysFont("Arial", 20, bold=True)
     board = initialize_board(GRID_SIZE)
-    generations = [board]
-    iteration = 0
+    generations = [board] #stores all the game's boards until the current iteration
+    iteration = 0 #current iteration
     population = 0 #number of live cells
     running = False  
     offset = [0, 0] #indicates how far the grid has been dragged, and used to display the grid in the correct position
     grid = True  #flag to display grid
 
-    #dictionary that handles mouse dragging
-    state = {"dragging": False, "initial_position": None}
+    '''dictionary that handles mouse dragging
+       dragging: flag to indicate whether the user is dragging the grid
+       initial_position: initial position of the mouse when dragging'''
+    state = {"dragging": False, "initial_position": None, "moved": False}
 
     pause_icon = pygame.image.load(r"img/Pause_icon.png")
     unpause_icon = pygame.image.load(r"img/Unpause_icon.png")
