@@ -1,0 +1,8 @@
+[ Space ] → Pause/Unpause game 
+[ R ] → Reset game  
+[ G ] → Toggle grid  
+[ ↑ / ↓ ] → Increase/Decrease FPS(frame rate)  
+[ ← / → ] → Go backwards/forwards one generation  
+[ Right Click ] → Activate/Deactivate cell  
+[ Hold Right Click ] → Drag grid
+[ Scroll Up / Down ] → Zoom in/out  
